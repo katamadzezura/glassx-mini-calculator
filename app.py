@@ -1,4 +1,5 @@
 import json
+import html
 import uuid
 from urllib.request import Request, urlopen
 import streamlit as st
@@ -12,12 +13,13 @@ st.markdown('''<style>
 .stButton>button[kind="primary"],button[data-testid="stBaseButton-primary"]{background:linear-gradient(110deg,#5546bd,#8061db)!important;color:white!important;border:0!important}
 .result{padding:22px;border-radius:18px;background:linear-gradient(120deg,#27265c,#5d49ac);color:white;margin:14px 0}
 .result .value{font-size:clamp(29px,8vw,44px);font-weight:800;line-height:1.3}.result .minor{font-size:14px;color:#e5dfff}
+.contact{border:1px solid #514b91;border-radius:18px;padding:20px;margin-top:18px;background:linear-gradient(145deg,#171b37,#282452);color:#fff}.contact h3{font-size:19px;margin:0 0 10px;color:#fff}.contact p{font-size:14px;line-height:1.7;color:#e1dff5}.call{display:block;text-align:center;text-decoration:none!important;background:#7763df;color:white!important;padding:13px;border-radius:12px;font-weight:750;margin-top:12px}.contact .phone{font-size:18px;font-weight:700;color:#fff}.email{display:block;text-align:center;margin-top:13px;color:#ded8ff!important;text-decoration:underline!important;overflow-wrap:anywhere}
 @media(max-width:600px){.block-container{padding-left:1rem;padding-right:1rem}}
 </style>''',unsafe_allow_html=True)
 T={
-'ka':{'tag':'SMART FILM · სწრაფი ფასის გამოთვლა','intro':'შეიყვანეთ შუშების ზომები სანტიმეტრებში და მიიღეთ საორიენტაციო ფასი.','pane':'შუშა','w':'სიგანე (სმ)','h':'სიმაღლე (სმ)','qty':'რაოდენობა','add':'＋ შუშის დამატება','remove':'წაშლა','area':'საერთო ფართობი','price':'საორიენტაციო ღირებულება','note':'საბოლოო ფასი დაზუსტდება ადგილზე აზომვის შემდეგ.','invalid':'შეიყვანეთ ყველა შუშის სწორი, დადებითი ზომა.','rate':'ამჟამად ავტომატური კურსი მიუწვდომელია. ფასის გამოსათვლელად სცადეთ მოგვიანებით.','zero':'დაამატეთ შუშა დასათვლელად.','limit':'შუშის ორივე გვერდი 150 სმ-ზე მეტია; სტანდარტული ფირის რულონიდან ვერ დაიჭრება.'},
-'en':{'tag':'SMART FILM · Instant estimate','intro':'Enter glass dimensions in centimeters to see an estimated price.','pane':'Panel','w':'Width (cm)','h':'Height (cm)','qty':'Quantity','add':'＋ Add panel','remove':'Delete','area':'Total area','price':'Estimated price','note':'Final price is subject to on-site measurement.','invalid':'Enter valid positive dimensions for every panel.','rate':'Exchange rate is currently unavailable. Please try again later.','zero':'Add a panel to calculate.','limit':'Both dimensions exceed 150 cm; the panel cannot be cut from the standard film roll.'},
-'ru':{'tag':'SMART FILM · Быстрый расчёт','intro':'Введите размеры стёкол в сантиметрах и получите примерную стоимость.','pane':'Стекло','w':'Ширина (см)','h':'Высота (см)','qty':'Количество','add':'＋ Добавить стекло','remove':'Удалить','area':'Общая площадь','price':'Примерная стоимость','note':'Окончательная цена уточняется после замера на месте.','invalid':'Укажите правильные положительные размеры каждого стекла.','rate':'Курс валют временно недоступен. Попробуйте позже.','zero':'Добавьте стекло для расчёта.','limit':'Обе стороны больше 150 см; стекло не помещается на стандартный рулон.'}}
+'ka':{'tag':'SMART FILM · სწრაფი ფასის გამოთვლა','intro':'შეიყვანეთ შუშების ზომები სანტიმეტრებში და მიიღეთ საორიენტაციო ფასი.','pane':'შუშა','w':'სიგანე (სმ)','h':'სიმაღლე (სმ)','qty':'რაოდენობა','add':'＋ შუშის დამატება','remove':'წაშლა','area':'საერთო ფართობი','price':'საორიენტაციო ღირებულება','note':'მითითებული ღირებულება საორიენტაციოა. ზუსტი ფასი განისაზღვრება ადგილზე აზომვისა და პროექტის ინდივიდუალური შეფასების შემდეგ.','invalid':'შეიყვანეთ ყველა შუშის სწორი, დადებითი ზომა.','rate':'ამჟამად ავტომატური კურსი მიუწვდომელია. ფასის გამოსათვლელად სცადეთ მოგვიანებით.','zero':'დაამატეთ შუშა დასათვლელად.','hint_w':'შეიყვანეთ სიგანე','hint_h':'შეიყვანეთ სიმაღლე','limit':'შუშის ორივე გვერდი 150 სმ-ზე მეტია; სტანდარტული ფირის რულონიდან ვერ დაიჭრება.'},
+'en':{'tag':'SMART FILM · Instant estimate','intro':'Enter glass dimensions in centimeters to see an estimated price.','pane':'Panel','w':'Width (cm)','h':'Height (cm)','qty':'Quantity','add':'＋ Add panel','remove':'Delete','area':'Total area','price':'Estimated price','note':'This is an estimate. The exact price will be confirmed after an on-site measurement and individual project assessment.','invalid':'Enter valid positive dimensions for every panel.','rate':'Exchange rate is currently unavailable. Please try again later.','zero':'Add a panel to calculate.','hint_w':'Enter width','hint_h':'Enter height','limit':'Both dimensions exceed 150 cm; the panel cannot be cut from the standard film roll.'},
+'ru':{'tag':'SMART FILM · Быстрый расчёт','intro':'Введите размеры стёкол в сантиметрах и получите примерную стоимость.','pane':'Стекло','w':'Ширина (см)','h':'Высота (см)','qty':'Количество','add':'＋ Добавить стекло','remove':'Удалить','area':'Общая площадь','price':'Примерная стоимость','note':'Указана ориентировочная стоимость. Точная цена определяется после замера на месте и индивидуальной оценки проекта.','invalid':'Укажите правильные положительные размеры каждого стекла.','rate':'Курс валют временно недоступен. Попробуйте позже.','zero':'Добавьте стекло для расчёта.','hint_w':'Введите ширину','hint_h':'Введите высоту','limit':'Обе стороны больше 150 см; стекло не помещается на стандартный рулон.'}}
 lang=st.selectbox('Language / ენა / Язык',['ka','en','ru'],format_func=lambda k:{'ka':'🇬🇪 ქართული','en':'🇬🇧 English','ru':'🇷🇺 Русский'}[k],label_visibility='collapsed')
 t=T[lang]
 st.markdown(f'<div class="brand"><strong>GlassX</strong><p>{t["tag"]}</p></div>',unsafe_allow_html=True)
@@ -28,8 +30,8 @@ if 'mini_panes' not in st.session_state:st.session_state.mini_panes=[new_pane()]
 for i,p in enumerate(st.session_state.mini_panes):
     st.markdown(f'**{t["pane"]} {i+1}**')
     a,b=st.columns(2)
-    p['w']=a.number_input(t['w'],min_value=0.0,value=None,step=1.0,placeholder='100',key=f'mini_w_{p["id"]}')
-    p['h']=b.number_input(t['h'],min_value=0.0,value=None,step=1.0,placeholder='180',key=f'mini_h_{p["id"]}')
+    p['w']=a.number_input(t['w'],min_value=0.0,value=None,step=1.0,placeholder=t['hint_w'],key=f'mini_w_{p["id"]}')
+    p['h']=b.number_input(t['h'],min_value=0.0,value=None,step=1.0,placeholder=t['hint_h'],key=f'mini_h_{p["id"]}')
     c,d=st.columns([2,1])
     p['qty']=c.number_input(t['qty'],min_value=1,max_value=1000,value=1,step=1,key=f'mini_q_{p["id"]}')
     if d.button('🗑️ '+t['remove'],key=f'mini_del_{p["id"]}',disabled=len(st.session_state.mini_panes)==1,use_container_width=True):
@@ -69,3 +71,16 @@ elif any(p.get('w') is not None or p.get('h') is not None for p in panes):
     st.info(t['invalid'])
 else:
     st.caption(t['zero'])
+
+# Customer contact section (always visible, even before dimensions are entered).
+contact = {
+    'ka': ('დაგაინტერესათ Smart Film?', 'დამატებითი ინფორმაციისთვის მოგვწერეთ პირად შეტყობინებაში ან დაგვიკავშირდით ტელეფონით.', 'დარეკეთ: 599 263 263'),
+    'en': ('Interested in Smart Film?', 'For more information, send us a private message on Facebook or call us.', 'Call: 599 263 263'),
+    'ru': ('Заинтересовала Smart Film?', 'Для дополнительной информации напишите нам в личные сообщения Facebook или позвоните.', 'Позвонить: 599 263 263'),
+}[lang]
+st.markdown(
+    '<div class="contact"><h3>' + html.escape(contact[0]) + '</h3><p>' + html.escape(contact[1]) + '</p>'
+    '<a class="call" href="tel:+995599263263">☎ ' + html.escape(contact[2]) + '</a>'
+    '<a class="email" href="mailto:glassx.georgia@gmail.com">✉ glassx.georgia@gmail.com</a></div>',
+    unsafe_allow_html=True,
+)
